@@ -1,136 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Secure Admin | Portfolio</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login & Dashboard</title>
+
+    <style>
+        /* Basic layout */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+            color: #222;
+        }
+
+        .page {
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 820px;
+            margin: 20px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .hidden { display: none; }
+
+        .toprow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Small button */
+        button.small {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        /* Dashboard sections */
+        .dashboard-section {
+            border: 1px solid #e0e0e0;
+            padding: 14px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+        }
+
+        /* Profile */
+        .profile-row { display: flex; align-items: center; gap: 16px; }
+        .profile-photo {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+
+        /* Inputs */
+        input[type="text"],
+        input[type="password"],
+        input[type="url"],
+        input[type="file"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /* Buttons */
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 12px;
+            margin-right: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover { filter: brightness(0.95); }
+
+        button.cancel {
+            background: #777;
+        }
+
+        /* Messages */
+        .error-message { color: #c00; margin-top: 8px; }
+        .success-message {
+            background: #e6f4ea;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* Projects list */
+        .projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #e3e3e3;
+            background: #fafafa;
+        }
+
+        .project-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* folder icon */
+        .folder-icon {
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        /* project title style */
+        .project-title {
+            font-weight: 600;
+        }
+
+        /* change button small square */
+        .change-btn {
+            background: #f0f0f0;
+            color: #222;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 72px;
+            text-align: center;
+        }
+
+        .change-btn:hover {
+            background: #e6e6e6;
+        }
+
+        /* form button container */
+        .form-buttons {
+            display:flex;
+            gap:10px;
+            margin-top: 6px;
+            align-items:center;
+        }
+        @media(max-width: 240px) {
+            .page { padding: 16px; margin: 12px; }
+            .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .project-left { gap: 8px; }
+        }
+
+        /* responsive */
+        @media (max-width: 640px) {
+            .page { padding: 16px; margin: 12px; }
+            .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .project-left { gap: 8px; }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="navbar">
-      <h1>Admin Dashboard</h1>
-      <a href="index.html" class="btn">Exit</a>
-    </div>
-  </header>
 
-  <main>
-    <div id="step-login" class="admin-card active">
-      <h2 style="margin-bottom:20px">🔒 Restricted Access</h2>
-      <input type="password" id="adminPass" placeholder="Enter Secret Key">
-      <button onclick="checkAuth()" class="btn fill" style="width:100%">Enter Dashboard</button>
-    </div>
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="page">
+        <h2>Admin Login</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
 
-    <div id="step-photo" class="admin-card">
-      <h2>Step 1: Update Hero Image</h2>
-      <p style="margin-bottom:20px; color: var(--muted)">Provide a URL for your profile photo.</p>
-      <input type="url" id="photoUrl" placeholder="https://example.com/image.jpg">
-      <button onclick="savePhoto()" class="btn fill">Next: Update Skills</button>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+
+            <button type="submit">Login</button>
+            <p id="login-error" class="error-message"></p>
+        </form>
     </div>
 
-    <div id="step-skills" class="admin-card">
-      <h2>Step 2: Technical Skills</h2>
-      <p style="margin-bottom:20px; color: var(--muted)">Enter skills separated by commas.</p>
-      <textarea id="skillsList" placeholder="Java, React, SQL, Python..."></textarea>
-      <button onclick="saveSkills()" class="btn fill">Next: Add Projects</button>
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboard-page" class="page hidden">
+        <div class="toprow">
+            <h1>Welcome, Admin!</h1>
+            <button id="logout-button" class="small">Logout</button>
+        </div>
+
+        <!-- PROFILE PHOTO -->
+        <div class="dashboard-section">
+            <h3>Profile Photo</h3>
+            <div class="profile-row">
+                <img id="profile-pic" src="default-profile.png" class="profile-photo" alt="Profile">
+                <div class="profile-controls">
+                    <input type="file" id="photo-input" accept="image/*" hidden>
+                    <button id="add-change-photo">Add/Change Photo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SKILLS MANAGEMENT -->
+        <div class="dashboard-section">
+            <h3>Skills Management</h3>
+            <p id="current-skills">Current Skills: </p>
+            <div class="skill-row">
+                <input type="text" id="skill-input" placeholder="Enter a skill">
+                <button id="add-skill-btn" class="small">Add Skill</button>
+                <button id="edit-skill-btn" class="small">Edit Skills</button>
+            </div>
+        </div>
+
+        <!-- PROJECTS -->
+        <div class="dashboard-section">
+            <h3>Projects</h3>
+            <div id="projects-list" class="projects-list"></div>
+
+            <div class="project-controls">
+                <button id="project-button">Add New Project</button>
+            </div>
+        </div>
     </div>
 
-    <div id="step-projects" class="admin-card">
-      <h2>Step 3: Project Management</h2>
-      <form id="projectForm" style="margin-top:20px">
-        <input type="text" id="pTitle" placeholder="Project Title" required>
-        <textarea id="pDesc" placeholder="Brief Description" required></textarea>
-        <input type="text" id="pTech" placeholder="Tech Used (comma separated)">
-        <input type="file" id="pMedia" accept="image/*,video/*" required>
-        <button type="submit" class="btn fill" style="width:100%">Upload Project</button>
-      </form>
-      
-      <table class="proj-table">
-        <tbody id="projListBody"></tbody>
-      </table>
+    <!-- PROJECT PAGE -->
+    <div id="project-page" class="page hidden">
+        <h2 id="project-form-title">Submit New Project</h2>
+
+        <p id="submit-message" class="success-message hidden">
+            ✔ Project saved successfully!
+        </p>
+
+        <form id="project-form">
+            <label for="project-title">Project Title:</label>
+            <input type="text" id="project-title" required>
+
+            <label for="project-description">Description:</label>
+            <textarea id="project-description" rows="5" required></textarea>
+
+            <label for="project-technologies">Technologies Used (comma separated):</label>
+            <input type="text" id="project-technologies">
+
+            <label for="project-image">Add Image:</label>
+            <input type="file" id="project-image" accept="image/*">
+
+            <label for="project-video">Add Video (file):</label>
+            <input type="file" id="project-video" accept="video/*">
+
+            <label for="project-position">Position (1 = first, 2 = second, ...):</label>
+            <input type="number" id="project-position" min="1">
+
+            <label for="project-github">GitHub Link:</label>
+            <input type="url" id="project-github">
+
+            <label for="project-live">Live Demo Link:</label>
+            <input type="url" id="project-live">
+
+            <div class="form-buttons">
+                <button type="submit" id="submit-project-btn">Submit Project</button>
+                <button type="button" id="cancel-project-btn" class="cancel">Cancel</button>
+            </div>
+        </form>
     </div>
-  </main>
+<script type="module">
+/* ================= FIREBASE IMPORTS ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
 
-  <footer>© 2025 Jella Kesava Krishna Pavan</footer>
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCFMubpD-kADaPCfpRNZltcvcUOF8FxM2Q",
+  authDomain: "portfolio-k78615.firebaseapp.com",
+  projectId: "portfolio-k78615",
+  storageBucket: "portfolio-k78615.appspot.com",
+  messagingSenderId: "964001708850",
+  appId: "1:964001708850:web:fe381d8843621139aab52b"
+};
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, doc, setDoc, collection, getDocs, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
+/* ================= INIT ================= */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCFMubpD-kADaPCfpRNZltcvcUOF8FxM2Q",
-      authDomain: "portfolio-k78615.firebaseapp.com",
-      projectId: "portfolio-k78615",
-      storageBucket: "portfolio-k78615.appspot.com",
-      messagingSenderId: "964001708850",
-      appId: "1:964001708850:web:fe381d8843621139aab52b"
+/* ================= FIRESTORE REFS ================= */
+const CONFIG_DOC = doc(db, "admin_config", "config");
+const DATA_DOC   = doc(db, "admin_data", "data");
+const PROJECTS   = collection(db, "projects");
+
+/* ================= STATE ================= */
+let editingProjectId = null;
+
+/* ================= ELEMENTS ================= */
+const loginPage = document.getElementById("login-page");
+const dashboardPage = document.getElementById("dashboard-page");
+const projectPage = document.getElementById("project-page");
+
+/* ================= AUTH ================= */
+onAuthStateChanged(auth, user => {
+  loginPage.classList.toggle("hidden", !!user);
+  dashboardPage.classList.toggle("hidden", !user);
+  if (user) loadDashboard();
+});
+
+document.getElementById("login-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      document.getElementById("username").value.trim(),
+      document.getElementById("password").value
+    );
+  } catch (err) {
+    document.getElementById("login-error").textContent = err.message;
+  }
+});
+
+document.getElementById("logout-button").onclick = () => signOut(auth);
+
+/* ================= PROFILE PHOTO ================= */
+document.getElementById("add-change-photo").onclick = () =>
+  document.getElementById("photo-input").click();
+
+document.getElementById("photo-input").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const r = ref(storage, "profile/main.jpg");
+  await uploadBytes(r, file);
+  const url = await getDownloadURL(r);
+
+  await setDoc(CONFIG_DOC, { profilePhoto: url }, { merge: true });
+  document.getElementById("profile-pic").src = url;
+});
+
+/* ================= SKILLS ================= */
+async function loadSkills() {
+  const snap = await getDoc(DATA_DOC);
+  const skills = snap.exists() ? snap.data().skills || [] : [];
+  document.getElementById("current-skills").textContent =
+    "Current Skills: " + (skills.length ? skills.join(", ") : "None");
+}
+
+document.getElementById("add-skill-btn").onclick = async () => {
+  const input = document.getElementById("skill-input");
+  if (!input.value.trim()) return;
+
+  const snap = await getDoc(DATA_DOC);
+  const skills = snap.exists() ? snap.data().skills || [] : [];
+  skills.push(input.value.trim());
+
+  await setDoc(DATA_DOC, { skills }, { merge: true });
+  input.value = "";
+  loadSkills();
+};
+
+/* ================= NAV ================= */
+document.getElementById("project-button").onclick = () => {
+  editingProjectId = null;
+  document.getElementById("project-form-title").textContent = "Submit New Project";
+  dashboardPage.classList.add("hidden");
+  projectPage.classList.remove("hidden");
+  document.getElementById("project-form").reset();
+};
+
+document.getElementById("cancel-project-btn").onclick = () => {
+  projectPage.classList.add("hidden");
+  dashboardPage.classList.remove("hidden");
+};
+
+/* ================= SUBMIT / UPDATE PROJECT ================= */
+document.getElementById("project-form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const data = {
+    title: document.getElementById("project-title").value.trim(),
+    description: document.getElementById("project-description").value.trim(),
+    technologies: document.getElementById("project-technologies").value
+      .split(",").map(t => t.trim()).filter(Boolean),
+    position: Number(document.getElementById("project-position").value),
+    github: document.getElementById("project-github").value,
+    live: document.getElementById("project-live").value,
+    updatedAt: new Date()
+  };
+
+  const imgFile = document.getElementById("project-image").files[0];
+  if (imgFile) {
+    const imgRef = ref(storage, `projects/images/${Date.now()}_${imgFile.name}`);
+    await uploadBytes(imgRef, imgFile);
+    data.image = await getDownloadURL(imgRef);
+  }
+
+  const vidFile = document.getElementById("project-video").files[0];
+  if (vidFile) {
+    const vidRef = ref(storage, `projects/videos/${Date.now()}_${vidFile.name}`);
+    await uploadBytes(vidRef, vidFile);
+    data.video = await getDownloadURL(vidRef);
+  }
+
+  if (editingProjectId) {
+    await updateDoc(doc(db, "projects", editingProjectId), data);
+  } else {
+    data.createdAt = new Date();
+    await addDoc(PROJECTS, data);
+  }
+
+  editingProjectId = null;
+  projectPage.classList.add("hidden");
+  dashboardPage.classList.remove("hidden");
+  document.getElementById("project-form").reset();
+  loadProjects();
+});
+
+/* ================= LOAD PROJECTS (WITH EDIT & DELETE) ================= */
+async function loadProjects() {
+  const list = document.getElementById("projects-list");
+  list.innerHTML = "";
+
+  const snap = await getDocs(query(PROJECTS, orderBy("position", "asc")));
+  if (snap.empty) {
+    list.innerHTML = "<p>No projects added yet.</p>";
+    return;
+  }
+
+  snap.forEach(d => {
+    const p = d.data();
+    const div = document.createElement("div");
+    div.className = "project-item";
+
+    div.innerHTML = `
+      <div class="project-left">
+        <div class="folder-icon">📁</div>
+        <div class="project-title">[${p.position}] ${p.title}</div>
+      </div>
+      <div>
+        <button class="change-btn edit">✏ Edit</button>
+        <button class="change-btn delete">🗑 Delete</button>
+      </div>
+    `;
+
+    /* EDIT */
+    div.querySelector(".edit").onclick = () => {
+      editingProjectId = d.id;
+      document.getElementById("project-form-title").textContent = "Edit Project";
+
+      dashboardPage.classList.add("hidden");
+      projectPage.classList.remove("hidden");
+
+      document.getElementById("project-title").value = p.title || "";
+      document.getElementById("project-description").value = p.description || "";
+      document.getElementById("project-technologies").value = (p.technologies || []).join(", ");
+      document.getElementById("project-position").value = p.position || "";
+      document.getElementById("project-github").value = p.github || "";
+      document.getElementById("project-live").value = p.live || "";
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    // NAVIGATION LOGIC
-    window.showStep = (id) => {
-      document.querySelectorAll('.admin-card').forEach(c => c.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    };
-
-    window.checkAuth = () => {
-      if(document.getElementById('adminPass').value === "1234") { // Change this password!
-        showStep('step-photo');
-      } else { alert("Access Denied"); }
-    };
-
-    window.savePhoto = async () => {
-      const url = document.getElementById('photoUrl').value;
-      await setDoc(doc(db, "admin_config", "config"), { profilePhoto: url }, { merge: true });
-      showStep('step-skills');
-    };
-
-    window.saveSkills = async () => {
-      const skills = document.getElementById('skillsList').value.split(',').map(s => s.trim());
-      await setDoc(doc(db, "admin_data", "data"), { skills: skills }, { merge: true });
-      loadProjects();
-      showStep('step-projects');
-    };
-
-    // PROJECT LOGIC
-    const form = document.getElementById("projectForm");
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      const file = document.getElementById("pMedia").files[0];
-      const fileRef = ref(storage, `projects/${Date.now()}_${file.name}`);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
-
-      await addDoc(collection(db, "projects"), {
-        title: document.getElementById("pTitle").value,
-        description: document.getElementById("pDesc").value,
-        technologies: document.getElementById("pTech").value.split(","),
-        image: url,
-        position: Date.now()
-      });
-      form.reset();
-      loadProjects();
-    };
-
-    async function loadProjects() {
-      const snap = await getDocs(collection(db, "projects"));
-      const body = document.getElementById('projListBody');
-      body.innerHTML = "";
-      snap.forEach(d => {
-        body.innerHTML += `<tr><td>${d.data().title}</td><td><button onclick="delProj('${d.id}')" class="del-btn">Delete</button></td></tr>`;
-      });
-    }
-
-    window.delProj = async (id) => {
-      if(confirm("Delete project?")) {
-        await deleteDoc(doc(db, "projects", id));
+    /* DELETE */
+    div.querySelector(".delete").onclick = async () => {
+      if (confirm("Delete this project?")) {
+        await deleteDoc(doc(db, "projects", d.id));
         loadProjects();
       }
     };
-  </script>
+
+    list.appendChild(div);
+  });
+}
+
+/* ================= DASHBOARD ================= */
+async function loadDashboard() {
+  loadSkills();
+  loadProjects();
+
+  const cfg = await getDoc(CONFIG_DOC);
+  if (cfg.exists() && cfg.data().profilePhoto) {
+    document.getElementById("profile-pic").src = cfg.data().profilePhoto;
+  }
+}
+</script>
 </body>
 </html>
