@@ -8,7 +8,7 @@
     <style>
         /* Basic layout */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             padding: 20px;
             background: #f4f4f4;
             color: #222;
@@ -96,15 +96,30 @@
             margin-top: 5px;
         }
 
-        /* Messages */
-        .error-message { color: #c00; margin-top: 8px; }
-        .success-message {
-            background: #e6f4ea;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        /* Professional Skill Display Styles */
+        .skill-category-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             padding: 10px;
+            background: #fcfcfc;
+            border: 1px solid #eee;
             border-radius: 6px;
-            font-weight: 600;
+        }
+        .cat-label {
+            font-weight: bold;
+            min-width: 120px;
+            color: #333;
+        }
+        .cat-input-field {
+            flex-grow: 1;
+            margin: 0 !important;
+        }
+        .cat-pos-input {
+            width: 50px !important;
+            margin: 0 !important;
+            text-align: center;
         }
 
         /* Projects list */
@@ -206,19 +221,11 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
-        /* Skill Manager Styles */
-        .skill-edit-item {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-        .skill-edit-item input { margin: 0; }
-
         @media(max-width: 640px) {
             .page { padding: 16px; margin: 12px; }
             .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
             .project-left { gap: 8px; }
+            .skill-category-row { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -256,19 +263,24 @@
 
         <div class="dashboard-section">
             <h3>Skills Management</h3>
-            <p id="current-skills">Current Skills: </p>
-            <div class="skill-input-container">
-                <input type="text" id="skill-input" placeholder="Enter a skill">
-                <div class="skill-action-buttons" style="display: flex; gap: 8px; margin-top: 10px;">
-                    <button id="add-skill-btn" class="small">Add Skill</button>
-                    <button id="edit-skills-btn" class="small">Update Skills</button>
+            <div id="skills-list-admin">
                 </div>
-            </div>
             
-            <div id="skills-editor" class="hidden" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
-                <h4>Edit Skills List</h4>
-                <div id="skills-list-container"></div>
-                <button id="close-skills-editor" class="small cancel">Done</button>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            
+            <div class="skill-footer-actions">
+                <div id="new-category-form" class="hidden" style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                    <input type="text" id="new-cat-name" placeholder="Category Name (e.g. Frontend)">
+                    <input type="text" id="new-cat-skills" placeholder="Skills (e.g. HTML, CSS, JS)">
+                    <input type="number" id="new-cat-pos" placeholder="Order (e.g. 1)">
+                    <button id="save-new-cat" class="small">Save Category</button>
+                    <button id="cancel-new-cat" class="small cancel">Cancel</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button id="show-add-cat-btn" class="small">Add New Category</button>
+                    <button id="delete-selected-skills-btn" class="small btn-danger" style="margin-top:0">Delete Selected</button>
+                </div>
             </div>
         </div>
 
@@ -420,70 +432,114 @@ function showToast(msg) {
 
 async function loadSkills() {
     const snap = await getDoc(DATA_DOC);
-    const skills = snap.exists() ? snap.data().skills || [] : [];
-    document.getElementById("current-skills").textContent = "Current Skills: " + (skills.length ? skills.join(", ") : "None");
-    return skills;
-}
+    // Support legacy objects or new ordered arrays
+    let skillsData = snap.exists() ? snap.data().skills_ordered || [] : [];
+    
+    // Fallback for old data structure conversion
+    if (!Array.isArray(skillsData) && snap.exists()) {
+        const oldData = snap.data().skills_categorized || {};
+        skillsData = Object.keys(oldData).map((cat, idx) => ({
+            category: cat,
+            skills: oldData[cat],
+            position: idx + 1
+        }));
+    }
 
-document.getElementById("add-skill-btn").onclick = async () => {
-    const input = document.getElementById("skill-input");
-    if (!input.value.trim()) return;
-    const snap = await getDoc(DATA_DOC);
-    const skills = snap.exists() ? snap.data().skills || [] : [];
-    const newSkill = input.value.trim();
-    skills.push(newSkill);
-    await setDoc(DATA_DOC, { skills }, { merge: true });
-    input.value = "";
-    loadSkills();
-    showToast(`Added skill: ${newSkill}`);
-};
+    // Sort by position
+    skillsData.sort((a, b) => (a.position || 0) - (b.position || 0));
 
-document.getElementById("edit-skills-btn").onclick = async () => {
-    const skills = await loadSkills();
-    const container = document.getElementById("skills-list-container");
+    const container = document.getElementById("skills-list-admin");
     container.innerHTML = "";
     
-    skills.forEach((skill, index) => {
+    if (skillsData.length === 0) {
+        container.innerHTML = "<p style='color:#888'>No skills added yet.</p>";
+        return;
+    }
+
+    skillsData.forEach((item, index) => {
         const row = document.createElement("div");
-        row.className = "skill-edit-item";
+        row.className = "skill-category-row";
+        const safeId = item.category.replace(/\s+/g, '');
+        
         row.innerHTML = `
-            <input type="text" value="${skill}" id="skill-edit-${index}">
-            <button class="small" style="background:#007bff" onclick="window.updateSingleSkill(${index})">Update</button>
-            <button class="small btn-danger" style="margin-top:0" onclick="window.deleteSkill(${index})">Delete</button>
+            <input type="checkbox" class="skill-checkbox" data-index="${index}">
+            <input type="number" class="cat-pos-input" value="${item.position || index+1}" id="pos-${safeId}">
+            <span class="cat-label">${item.category} :</span>
+            <input type="text" class="cat-input-field" value="${item.skills}" id="input-${safeId}">
+            <button class="small" onclick="window.updateCategory('${item.category}', '${safeId}')">Update</button>
         `;
         container.appendChild(row);
     });
-    
-    document.getElementById("skills-editor").classList.remove("hidden");
-};
+}
 
-document.getElementById("close-skills-editor").onclick = () => {
-    document.getElementById("skills-editor").classList.add("hidden");
-};
-
-window.updateSingleSkill = async (index) => {
-    const newValue = document.getElementById(`skill-edit-${index}`).value.trim();
+window.updateCategory = async (catName, safeId) => {
+    const newValue = document.getElementById(`input-${safeId}`).value.trim();
+    const newPos = Number(document.getElementById(`pos-${safeId}`).value);
     if (!newValue) return;
     
     const snap = await getDoc(DATA_DOC);
-    const skills = snap.exists() ? snap.data().skills || [] : [];
-    const oldSkill = skills[index];
-    skills[index] = newValue;
+    let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
     
-    await setDoc(DATA_DOC, { skills }, { merge: true });
+    const idx = skills_ordered.findIndex(s => s.category === catName);
+    if (idx !== -1) {
+        skills_ordered[idx].skills = newValue;
+        skills_ordered[idx].position = newPos;
+    }
+    
+    await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
+    showToast(`Updated ${catName}`);
     loadSkills();
-    showToast(`Skill modified: ${oldSkill} → ${newValue}`);
 };
 
-window.deleteSkill = async (index) => {
-    if(!confirm("Remove this skill?")) return;
+document.getElementById("show-add-cat-btn").onclick = () => {
+    document.getElementById("new-category-form").classList.remove("hidden");
+};
+
+document.getElementById("cancel-new-cat").onclick = () => {
+    document.getElementById("new-category-form").classList.add("hidden");
+};
+
+document.getElementById("save-new-cat").onclick = async () => {
+    const name = document.getElementById("new-cat-name").value.trim();
+    const skills = document.getElementById("new-cat-skills").value.trim();
+    const pos = Number(document.getElementById("new-cat-pos").value);
+    
+    if (!name || !skills) { alert("Fill name and skills"); return; }
+    
     const snap = await getDoc(DATA_DOC);
-    const skills = snap.exists() ? snap.data().skills || [] : [];
-    const removed = skills.splice(index, 1);
-    await setDoc(DATA_DOC, { skills }, { merge: true });
+    let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
+    
+    skills_ordered.push({
+        category: name,
+        skills: skills,
+        position: pos || (skills_ordered.length + 1)
+    });
+    
+    await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
+    document.getElementById("new-cat-name").value = "";
+    document.getElementById("new-cat-skills").value = "";
+    document.getElementById("new-cat-pos").value = "";
+    document.getElementById("new-category-form").classList.add("hidden");
+    showToast("Added category");
     loadSkills();
-    document.getElementById("edit-skills-btn").click(); // Refresh list
-    showToast(`Deleted skill: ${removed}`);
+};
+
+document.getElementById("delete-selected-skills-btn").onclick = async () => {
+    const checkboxes = document.querySelectorAll(".skill-checkbox:checked");
+    if (checkboxes.length === 0) { alert("Please select categories to delete"); return; }
+
+    if (confirm(`Delete ${checkboxes.length} selected categories?`)) {
+        const snap = await getDoc(DATA_DOC);
+        let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
+        
+        const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+        // Filter out the items at those indices
+        const filteredSkills = skills_ordered.filter((_, idx) => !indicesToDelete.includes(idx));
+        
+        await setDoc(DATA_DOC, { skills_ordered: filteredSkills }, { merge: true });
+        showToast("Selected skills deleted");
+        loadSkills();
+    }
 };
 
 /* ================= PROJECTS NAV ================= */
