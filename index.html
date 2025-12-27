@@ -213,10 +213,12 @@
         .modal-left { flex: 1.5; min-width: 300px; }
         .modal-right { flex: 1; min-width: 250px; }
         .close-modal { font-size: 2rem; color: white; cursor: pointer; line-height: 1; }
-        .btn-group { display: flex; gap: 15px; margin-top: 20px; }
-        .action-btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-group { display: flex; gap: 15px; margin-top: 20px; flex-direction: column; }
+        .action-btn-row { display: flex; gap: 15px; }
+        .action-btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
         .demo-btn { background: #00d2ff; color: #000; }
         .git-btn { background: #333; color: #fff; border: 1px solid #555; }
+        .link-msg { font-size: 0.85rem; color: #ffca28; margin-top: 5px; display: block; font-style: italic; }
 
         /* Education Specific Styling */
         .edu-grid {
@@ -227,18 +229,23 @@
         }
         .edu-card {
             background: rgba(255, 255, 255, 0.05);
-            border-left: 4px solid var(--primary-color);
             padding: 20px;
-            border-radius: 0 15px 15px 0;
+            border-radius: 15px;
             transition: 0.3s;
             position: relative;
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            animation: pulseGlow 3s infinite ease-in-out;
+            outline: none;
         }
-        .edu-card:hover {
+        .edu-card:hover, .edu-card:active, .edu-card:focus {
+            animation: none;
             background: rgba(0, 210, 255, 0.1);
-            transform: scale(1.02);
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 30px var(--primary-color);
         }
         .edu-year {
-            color: var(--primary-color);
+            color: #ccc;
             font-weight: bold;
             font-size: 0.9rem;
             display: block;
@@ -247,10 +254,10 @@
         .edu-degree {
             font-size: 1.2rem;
             margin: 5px 0;
-            color: #fff;
+            color: var(--primary-color);
         }
         .edu-inst {
-            color: #ccc;
+            color: #fff;
             font-size: 1rem;
             font-style: italic;
             margin-bottom: 10px;
@@ -302,7 +309,6 @@
             .hero-container { flex-direction: column-reverse; text-align: center; }
             .profile-photo { margin-left: 0; margin-bottom: 20px; }
             .modal-body { flex-direction: column; }
-            /* Footer mobile centering and order */
             .footer-container { flex-direction: column; text-align: center; align-items: center; }
             .footer-left { order: 1; display: flex; flex-direction: column; align-items: center; }
             .social-links { justify-content: center; }
@@ -355,21 +361,21 @@
         <section id="education" class="glowing-section">
             <h2 style="color:var(--primary-color);">Education</h2>
             <div class="edu-grid">
-                <div class="edu-card">
+                <div class="edu-card" tabindex="0">
                     <span class="edu-year">2023 — Present</span>
                     <h3 class="edu-degree">Bachelor of Technology (B.Tech)</h3>
                     <p class="edu-inst">Aditya Engineering College</p>
                     <span class="edu-score">CGPA: 9.02/10.0</span>
                     <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:10px;">Focusing on Information Technology. Developing advanced skills in Software Development Life Cycle (SDLC) and Data Engineering.</p>
                 </div>
-                <div class="edu-card">
+                <div class="edu-card" tabindex="0">
                     <span class="edu-year">2021 — 2023</span>
                     <h3 class="edu-degree">Intermediate (MPC)</h3>
                     <p class="edu-inst">Naryana Junior College</p>
-                    <span class="edu-score">Percentage: 94.3%%</span>
+                    <span class="edu-score">Percentage: 94.3%</span>
                     <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:10px;">Excelled in Mathematics and Physics, providing a logical base for my career in programming and analytics.</p>
                 </div>
-                <div class="edu-card">
+                <div class="edu-card" tabindex="0">
                     <span class="edu-year">2020 — 2021</span>
                     <h3 class="edu-degree">Secondary School Certificate (10th)</h3>
                     <p class="edu-inst">Narayana E.M high School</p>
@@ -423,8 +429,11 @@
                     <h4 style="color:var(--primary-color);"><i class="fas fa-tools"></i> Technologies Used:</h4>
                     <div id="modalTechGrid" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;"></div>
                     <div class="btn-group">
-                        <a href="#" id="liveDemoLink" class="action-btn demo-btn" target="_blank"><i class="fas fa-external-link-alt"></i> Live Demo</a>
-                        <a href="#" id="githubLink" class="action-btn git-btn" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                        <div class="action-btn-row">
+                            <a href="#" id="liveDemoLink" class="action-btn demo-btn" target="_blank"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                            <a href="#" id="githubLink" class="action-btn git-btn" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                        </div>
+                        <div id="linkStatusMsg"></div>
                     </div>
                 </div>
             </div>
@@ -616,8 +625,19 @@
         document.getElementById('modalDesc').textContent = p.description;
         document.getElementById('modalTechGrid').innerHTML = (p.technologies || []).map(t => `<span class="tech-tag" style="background:rgba(0,210,255,0.2); color:white;">${t}</span>`).join('');
         document.getElementById('modalVideoContainer').innerHTML = p.video ? `<video src="${p.video}" controls autoplay style="width:100%; border-radius:10px;"></video>` : `<img src="${p.image}" style="width:100%; border-radius:10px;">`;
-        document.getElementById('liveDemoLink').href = p.live || "#";
-        document.getElementById('githubLink').href = p.github || "#";
+        
+        const demoLink = document.getElementById('liveDemoLink');
+        const gitLink = document.getElementById('githubLink');
+        const statusMsg = document.getElementById('linkStatusMsg');
+        
+        demoLink.href = p.live || "#";
+        gitLink.href = p.github || "#";
+        
+        let messages = [];
+        if(!p.live || p.live === "#") messages.push('<span class="link-msg">No Live Demo link available for this project.</span>');
+        if(!p.github || p.github === "#") messages.push('<span class="link-msg">No GitHub repository link available for this project.</span>');
+        statusMsg.innerHTML = messages.join("");
+
         document.getElementById('projectModal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
     };
@@ -641,9 +661,6 @@
                 if(document.getElementById("typewriter").innerHTML === "") typeWriter(); 
                 initHomeDots(); 
             } 
-        }
-        if(hash !== 'home' || !window.location.hash.includes('home')) {
-             window.scrollTo(0, 0);
         }
     }
 
