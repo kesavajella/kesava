@@ -147,6 +147,7 @@
             animation: pulseGlow 3s infinite ease-in-out;
             transition: 0.3s ease;
             outline: none;
+            width: 100%;
         }
 
         .stat-block:hover, .stat-block:active, .stat-block:focus {
@@ -223,9 +224,10 @@
         /* Education Specific Styling */
         .edu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
             margin-top: 30px;
+            justify-content: center;
         }
         .edu-card {
             background: rgba(255, 255, 255, 0.05);
@@ -236,6 +238,7 @@
             border: 1px solid rgba(0, 210, 255, 0.3);
             animation: pulseGlow 3s infinite ease-in-out;
             outline: none;
+            width: 100%;
         }
         .edu-card:hover, .edu-card:active, .edu-card:focus {
             animation: none;
@@ -313,6 +316,8 @@
             .footer-left { order: 1; display: flex; flex-direction: column; align-items: center; }
             .social-links { justify-content: center; }
             .footer-right { order: 2; text-align: center; }
+            .glowing-section { padding: 40px 20px; margin: 20px 10px; }
+            #skills-grid, .edu-grid { grid-template-columns: 1fr; max-width: 100%; }
         }
     </style>
 </head>
@@ -387,7 +392,7 @@
 
         <section id="skills" class="glowing-section">
             <h2 style="color:var(--primary-color);">Technical Skills</h2>
-            <div id="skills-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;"></div>
+            <div id="skills-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px; justify-content: center;"></div>
         </section>
     </div>
 
