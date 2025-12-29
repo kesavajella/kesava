@@ -220,7 +220,42 @@
         .demo-btn { background: #00d2ff; color: #000; }
         .git-btn { background: #333; color: #fff; border: 1px solid #555; }
         .link-msg { font-size: 0.85rem; color: #ffca28; margin-top: 5px; display: block; font-style: italic; }
+	/* Container for the certificate */
+.certificate-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0, 123, 255, 0.1);
+    
+    /* Initial subtle glow */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08), 
+                0 0 10px rgba(0, 123, 255, 0.05);
+}
 
+/* The Glowing Effect on Hover */
+.certificate-box:hover {
+    transform: translateY(-8px);
+    border-color: #007bff;
+    
+    /* Multi-layered box shadow for a realistic neon glow */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 
+                0 0 20px rgba(0, 123, 255, 0.4), 
+                0 0 40px rgba(0, 123, 255, 0.2);
+}
+
+/* Optional: Smooth transition for the image inside */
+.certificate-box img {
+    width: 100%;
+    border-radius: 8px;
+    transition: transform 0.4s ease;
+}
+
+.certificate-box:hover img {
+    transform: scale(1.02);
+}
         /* Education Specific Styling */
         .edu-grid {
             display: grid;
