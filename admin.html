@@ -226,7 +226,7 @@
             .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
             .project-left { gap: 8px; }
             
-            /* Skill Section Mobile: Checkbox, Number, Name side-by-side; Skills down */
+            /* Skill Section Mobile */
             .skill-category-row { 
                 flex-wrap: wrap; 
                 gap: 10px; 
@@ -234,6 +234,7 @@
             }
             .skill-checkbox { order: 1; margin: 0 !important; }
             .cat-pos-input { order: 2; margin: 0 !important; }
+
             .cat-label { 
                 order: 3; 
                 min-width: unset; 
@@ -288,8 +289,7 @@
 
         <div class="dashboard-section">
             <h3>Skills Management</h3>
-            <div id="skills-list-admin">
-                </div>
+            <div id="skills-list-admin"></div>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
             
@@ -316,11 +316,18 @@
                 <button id="project-button">Add New Project</button>
             </div>
         </div>
+
+        <div class="dashboard-section">
+            <h3>Certifications</h3>
+            <div id="certs-list-admin" class="projects-list"></div>
+            <div class="project-controls" style="margin-top: 15px;">
+                <button id="cert-button">Add New Certificate</button>
+            </div>
+        </div>
     </div>
 
     <div id="project-page" class="page hidden">
         <h2 id="project-form-title">Submit New Project</h2>
-        <p id="submit-message" class="success-message hidden">✔ Project saved successfully!</p>
         <form id="project-form">
             <label for="project-title">Project Title:</label>
             <input type="text" id="project-title" required>
@@ -364,6 +371,33 @@
         </form>
     </div>
 
+    <div id="cert-page" class="page hidden">
+        <h2 id="cert-form-title">Submit New Certificate</h2>
+        <form id="cert-form">
+            <label for="cert-title">Certificate Name:</label>
+            <input type="text" id="cert-title" required>
+            
+            <label for="cert-org">Issuing Organization:</label>
+            <input type="text" id="cert-org">
+            
+            <label for="cert-image">Certificate Image:</label>
+            <input type="file" id="cert-image" accept="image/*">
+            <div id="cert-image-preview" class="media-preview-container hidden">
+                <p style="font-size: 12px; margin: 0 0 5px 0;">Current Image:</p>
+                <img src="" id="display-cert-img">
+            </div>
+
+            <label for="cert-position">Position (1, 2, ...):</label>
+            <input type="number" id="cert-position" min="1">
+            
+            <div class="form-buttons">
+                <button type="submit" id="submit-cert-btn">Save Certificate</button>
+                <button type="button" id="cancel-cert-btn" class="cancel">Cancel</button>
+            </div>
+            <p id="cert-upload-status" style="font-size: 13px; color: #007bff; margin-top: 10px;"></p>
+        </form>
+    </div>
+
     <div id="toast"></div>
 
 <script type="module">
@@ -390,8 +424,10 @@ const UPLOAD_PRESET = "K78615";
 const CONFIG_DOC = doc(db, "admin_config", "config");
 const DATA_DOC   = doc(db, "admin_data", "data");
 const PROJECTS   = collection(db, "projects");
+const CERTS      = collection(db, "certificates");
 
 let editingProjectId = null;
+let editingCertId = null;
 let deleteImageFlag = false;
 let deleteVideoFlag = false;
 
@@ -417,6 +453,7 @@ function resetLogoutTimer() {
 const loginPage = document.getElementById("login-page");
 const dashboardPage = document.getElementById("dashboard-page");
 const projectPage = document.getElementById("project-page");
+const certPage = document.getElementById("cert-page");
 
 onAuthStateChanged(auth, user => {
     loginPage.classList.toggle("hidden", !!user);
@@ -429,20 +466,12 @@ onAuthStateChanged(auth, user => {
     }
 });
 
-// --- OPTION 2: HARDCODED MAP STRATEGY ---
 document.getElementById("login-form").addEventListener("submit", async e => {
     e.preventDefault();
     const userInput = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
-    
-    // Create your map here: "Nickname": "Real Firebase Email"
-    const userMap = {
-        "kesava78615": "kesavajella2006@gmail.com"
-    };
-
-    // If the input is in our map, use the mapped email. Otherwise, use what was typed.
+    const userMap = { "kesava78615": "kesavajella2006@gmail.com" };
     const finalEmail = userMap[userInput] || userInput;
-    
     try {
         await setPersistence(auth, browserSessionPersistence);
         await signInWithEmailAndPassword(auth, finalEmail, password);
@@ -458,7 +487,6 @@ async function uploadToCloudinary(file) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
-
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
         method: "POST",
         body: formData
@@ -468,7 +496,6 @@ async function uploadToCloudinary(file) {
 }
 
 document.getElementById("add-change-photo").onclick = () => document.getElementById("photo-input").click();
-
 document.getElementById("photo-input").addEventListener("change", async e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -484,7 +511,6 @@ document.getElementById("photo-input").addEventListener("change", async e => {
     }
 });
 
-/* ================= SKILLS ================= */
 function showToast(msg) {
     const toast = document.getElementById("toast");
     toast.textContent = msg;
@@ -492,34 +518,17 @@ function showToast(msg) {
     setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
 }
 
+/* ================= SKILLS ================= */
 async function loadSkills() {
     const snap = await getDoc(DATA_DOC);
     let skillsData = snap.exists() ? snap.data().skills_ordered || [] : [];
-    
-    if (!Array.isArray(skillsData) && snap.exists()) {
-        const oldData = snap.data().skills_categorized || {};
-        skillsData = Object.keys(oldData).map((cat, idx) => ({
-            category: cat,
-            skills: oldData[cat],
-            position: idx + 1
-        }));
-    }
-
     skillsData.sort((a, b) => (a.position || 0) - (b.position || 0));
-
     const container = document.getElementById("skills-list-admin");
-    container.innerHTML = "";
-    
-    if (skillsData.length === 0) {
-        container.innerHTML = "<p style='color:#888'>No skills added yet.</p>";
-        return;
-    }
-
+    container.innerHTML = skillsData.length === 0 ? "<p style='color:#888'>No skills added yet.</p>" : "";
     skillsData.forEach((item, index) => {
         const row = document.createElement("div");
         row.className = "skill-category-row";
         const safeId = item.category.replace(/\s+/g, '');
-        
         row.innerHTML = `
             <input type="checkbox" class="skill-checkbox" data-index="${index}">
             <input type="number" class="cat-pos-input" value="${item.position || index+1}" id="pos-${safeId}">
@@ -534,50 +543,29 @@ async function loadSkills() {
 window.updateCategory = async (catName, safeId) => {
     const newValue = document.getElementById(`input-${safeId}`).value.trim();
     const newPos = Number(document.getElementById(`pos-${safeId}`).value);
-    if (!newValue) return;
-    
     const snap = await getDoc(DATA_DOC);
     let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
-    
     const idx = skills_ordered.findIndex(s => s.category === catName);
     if (idx !== -1) {
         skills_ordered[idx].skills = newValue;
         skills_ordered[idx].position = newPos;
+        await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
+        showToast(`Updated ${catName}`);
+        loadSkills();
     }
-    
-    await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
-    showToast(`Updated ${catName}`);
-    loadSkills();
 };
 
-document.getElementById("show-add-cat-btn").onclick = () => {
-    document.getElementById("new-category-form").classList.remove("hidden");
-};
-
-document.getElementById("cancel-new-cat").onclick = () => {
-    document.getElementById("new-category-form").classList.add("hidden");
-};
-
+document.getElementById("show-add-cat-btn").onclick = () => document.getElementById("new-category-form").classList.remove("hidden");
+document.getElementById("cancel-new-cat").onclick = () => document.getElementById("new-category-form").classList.add("hidden");
 document.getElementById("save-new-cat").onclick = async () => {
     const name = document.getElementById("new-cat-name").value.trim();
     const skills = document.getElementById("new-cat-skills").value.trim();
     const pos = Number(document.getElementById("new-cat-pos").value);
-    
-    if (!name || !skills) { alert("Fill name and skills"); return; }
-    
+    if (!name || !skills) return;
     const snap = await getDoc(DATA_DOC);
     let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
-    
-    skills_ordered.push({
-        category: name,
-        skills: skills,
-        position: pos || (skills_ordered.length + 1)
-    });
-    
+    skills_ordered.push({ category: name, skills: skills, position: pos || (skills_ordered.length + 1) });
     await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
-    document.getElementById("new-cat-name").value = "";
-    document.getElementById("new-cat-skills").value = "";
-    document.getElementById("new-cat-pos").value = "";
     document.getElementById("new-category-form").classList.add("hidden");
     showToast("Added category");
     loadSkills();
@@ -585,54 +573,34 @@ document.getElementById("save-new-cat").onclick = async () => {
 
 document.getElementById("delete-selected-skills-btn").onclick = async () => {
     const checkboxes = document.querySelectorAll(".skill-checkbox:checked");
-    if (checkboxes.length === 0) { alert("Please select categories to delete"); return; }
-
+    if (checkboxes.length === 0) return;
     if (confirm(`Delete ${checkboxes.length} selected categories?`)) {
         const snap = await getDoc(DATA_DOC);
         let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
-        
         const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
         const filteredSkills = skills_ordered.filter((_, idx) => !indicesToDelete.includes(idx));
-        
         await setDoc(DATA_DOC, { skills_ordered: filteredSkills }, { merge: true });
         showToast("Selected skills deleted");
         loadSkills();
     }
 };
 
-/* ================= PROJECTS NAV ================= */
+/* ================= PROJECTS ================= */
 document.getElementById("project-button").onclick = () => {
-    editingProjectId = null;
-    deleteImageFlag = false;
-    deleteVideoFlag = false;
+    editingProjectId = null; deleteImageFlag = false; deleteVideoFlag = false;
     document.getElementById("project-form-title").textContent = "Submit New Project";
     document.getElementById("current-image-preview").classList.add("hidden");
     document.getElementById("current-video-preview").classList.add("hidden");
-    dashboardPage.classList.add("hidden");
-    projectPage.classList.remove("hidden");
+    dashboardPage.classList.add("hidden"); projectPage.classList.remove("hidden");
     document.getElementById("project-form").reset();
 };
 
-document.getElementById("cancel-project-btn").onclick = () => {
-    projectPage.classList.add("hidden");
-    dashboardPage.classList.remove("hidden");
-};
-
-document.getElementById("remove-img-btn").onclick = () => {
-    deleteImageFlag = true;
-    document.getElementById("current-image-preview").classList.add("hidden");
-};
-
-document.getElementById("remove-vid-btn").onclick = () => {
-    deleteVideoFlag = true;
-    document.getElementById("current-video-preview").classList.add("hidden");
-};
+document.getElementById("cancel-project-btn").onclick = () => { projectPage.classList.add("hidden"); dashboardPage.classList.remove("hidden"); };
 
 document.getElementById("project-form").addEventListener("submit", async e => {
     e.preventDefault();
     const status = document.getElementById("project-upload-status");
-    status.textContent = "Processing project...";
-
+    status.textContent = "Processing...";
     const data = {
         title: document.getElementById("project-title").value.trim(),
         description: document.getElementById("project-description").value.trim(),
@@ -642,95 +610,107 @@ document.getElementById("project-form").addEventListener("submit", async e => {
         live: document.getElementById("project-live").value,
         updatedAt: serverTimestamp()
     };
-
-    if (deleteImageFlag) data.image = deleteField();
-    if (deleteVideoFlag) data.video = deleteField();
-
     try {
         const imgFile = document.getElementById("project-image").files[0];
-        if (imgFile) {
-            status.textContent = "Uploading image...";
-            data.image = await uploadToCloudinary(imgFile);
-        }
-
+        if (imgFile) data.image = await uploadToCloudinary(imgFile);
         const vidFile = document.getElementById("project-video").files[0];
-        if (vidFile) {
-            status.textContent = "Uploading video...";
-            data.video = await uploadToCloudinary(vidFile);
-        }
+        if (vidFile) data.video = await uploadToCloudinary(vidFile);
 
-        if (editingProjectId) {
-            await updateDoc(doc(db, "projects", editingProjectId), data);
-        } else {
-            data.createdAt = serverTimestamp();
-            await addDoc(PROJECTS, data);
-        }
-
-        projectPage.classList.add("hidden");
-        dashboardPage.classList.remove("hidden");
-        document.getElementById("project-form").reset();
-        status.textContent = "";
+        if (editingProjectId) await updateDoc(doc(db, "projects", editingProjectId), data);
+        else { data.createdAt = serverTimestamp(); await addDoc(PROJECTS, data); }
+        
+        projectPage.classList.add("hidden"); dashboardPage.classList.remove("hidden");
         loadProjects();
-    } catch (err) {
-        status.textContent = "Error saving project.";
-        console.error(err);
-    }
+    } catch (err) { status.textContent = "Error saving."; }
 });
 
 async function loadProjects() {
     const list = document.getElementById("projects-list");
     list.innerHTML = "";
     const snap = await getDocs(query(PROJECTS, orderBy("position", "asc")));
-    if (snap.empty) { list.innerHTML = "<p>No projects added yet.</p>"; return; }
-
     snap.forEach(d => {
         const p = d.data();
         const div = document.createElement("div");
         div.className = "project-item";
         div.innerHTML = `
-            <div class="project-left">
-                <div class="folder-icon">📁</div>
-                <div class="project-title">[${p.position}] ${p.title}</div>
-            </div>
-            <div>
-                <button class="change-btn edit">✏ Edit</button>
-                <button class="change-btn delete">🗑 Delete</button>
-            </div>
+            <div class="project-left"><div class="folder-icon">📁</div><div class="project-title">[${p.position}] ${p.title}</div></div>
+            <div><button class="change-btn edit">✏ Edit</button><button class="change-btn delete">🗑 Delete</button></div>
         `;
         div.querySelector(".edit").onclick = () => {
             editingProjectId = d.id;
-            deleteImageFlag = false;
-            deleteVideoFlag = false;
             document.getElementById("project-form-title").textContent = "Edit Project";
-            dashboardPage.classList.add("hidden");
-            projectPage.classList.remove("hidden");
-            
-            document.getElementById("project-title").value = p.title || "";
-            document.getElementById("project-description").value = p.description || "";
+            dashboardPage.classList.add("hidden"); projectPage.classList.remove("hidden");
+            document.getElementById("project-title").value = p.title;
+            document.getElementById("project-description").value = p.description;
             document.getElementById("project-technologies").value = (p.technologies || []).join(", ");
-            document.getElementById("project-position").value = p.position || "";
+            document.getElementById("project-position").value = p.position;
             document.getElementById("project-github").value = p.github || "";
             document.getElementById("project-live").value = p.live || "";
+        };
+        div.querySelector(".delete").onclick = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "projects", d.id)); loadProjects(); } };
+        list.appendChild(div);
+    });
+}
 
-            const imgPrev = document.getElementById("current-image-preview");
-            if (p.image) {
-                imgPrev.classList.remove("hidden");
-                document.getElementById("display-img").src = p.image;
-            } else {
-                imgPrev.classList.add("hidden");
-            }
+/* ================= CERTIFICATES ================= */
+document.getElementById("cert-button").onclick = () => {
+    editingCertId = null;
+    document.getElementById("cert-form-title").textContent = "Add New Certificate";
+    document.getElementById("cert-image-preview").classList.add("hidden");
+    dashboardPage.classList.add("hidden"); certPage.classList.remove("hidden");
+    document.getElementById("cert-form").reset();
+};
 
-            const vidPrev = document.getElementById("current-video-preview");
-            if (p.video) {
-                vidPrev.classList.remove("hidden");
-                document.getElementById("display-vid").src = p.video;
-            } else {
-                vidPrev.classList.add("hidden");
+document.getElementById("cancel-cert-btn").onclick = () => { certPage.classList.add("hidden"); dashboardPage.classList.remove("hidden"); };
+
+document.getElementById("cert-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const status = document.getElementById("cert-upload-status");
+    status.textContent = "Uploading...";
+    const data = {
+        title: document.getElementById("cert-title").value.trim(),
+        org: document.getElementById("cert-org").value.trim(),
+        position: Number(document.getElementById("cert-position").value) || 1,
+        updatedAt: serverTimestamp()
+    };
+    try {
+        const file = document.getElementById("cert-image").files[0];
+        if (file) data.image = await uploadToCloudinary(file);
+        else if (!editingCertId) { alert("Image required"); return; }
+
+        if (editingCertId) await updateDoc(doc(db, "certificates", editingCertId), data);
+        else { data.createdAt = serverTimestamp(); await addDoc(CERTS, data); }
+        
+        certPage.classList.add("hidden"); dashboardPage.classList.remove("hidden");
+        loadCertificates();
+    } catch (err) { status.textContent = "Error."; }
+});
+
+async function loadCertificates() {
+    const list = document.getElementById("certs-list-admin");
+    list.innerHTML = "";
+    const snap = await getDocs(query(CERTS, orderBy("position", "asc")));
+    snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement("div");
+        div.className = "project-item";
+        div.innerHTML = `
+            <div class="project-left"><div class="folder-icon">📜</div><div class="project-title">[${c.position}] ${c.title}</div></div>
+            <div><button class="change-btn edit">✏ Edit</button><button class="change-btn delete">🗑 Delete</button></div>
+        `;
+        div.querySelector(".edit").onclick = () => {
+            editingCertId = d.id;
+            document.getElementById("cert-form-title").textContent = "Edit Certificate";
+            dashboardPage.classList.add("hidden"); certPage.classList.remove("hidden");
+            document.getElementById("cert-title").value = c.title;
+            document.getElementById("cert-org").value = c.org || "";
+            document.getElementById("cert-position").value = c.position;
+            if(c.image) {
+                document.getElementById("cert-image-preview").classList.remove("hidden");
+                document.getElementById("display-cert-img").src = c.image;
             }
         };
-        div.querySelector(".delete").onclick = async () => {
-            if (confirm("Delete this project?")) { await deleteDoc(doc(db, "projects", d.id)); loadProjects(); }
-        };
+        div.querySelector(".delete").onclick = async () => { if(confirm("Delete Certificate?")) { await deleteDoc(doc(db, "certificates", d.id)); loadCertificates(); } };
         list.appendChild(div);
     });
 }
@@ -738,12 +718,10 @@ async function loadProjects() {
 async function loadDashboard() {
     loadSkills();
     loadProjects();
+    loadCertificates();
     const cfg = await getDoc(CONFIG_DOC);
-    if (cfg.exists() && cfg.data().profilePhoto) {
-        document.getElementById("profile-pic").src = cfg.data().profilePhoto;
-    }
+    if (cfg.exists() && cfg.data().profilePhoto) document.getElementById("profile-pic").src = cfg.data().profilePhoto;
 }
 </script>
 </body>
 </html>
-
