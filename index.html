@@ -139,22 +139,19 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Base class for all glowing containers */
-        .stat-block, .edu-card { 
+        .stat-block { 
             background: rgba(255, 255, 255, 0.05); 
             border: 1px solid rgba(0, 210, 255, 0.3); 
             border-radius: 15px; 
             padding: 25px; 
+            text-align: center; 
             animation: pulseGlow 3s infinite ease-in-out;
             transition: 0.3s ease;
             outline: none;
             width: 100%;
         }
 
-        .stat-block { text-align: center; }
-
-        .stat-block:hover, .stat-block:active, .stat-block:focus,
-        .edu-card:hover, .edu-card:active, .edu-card:focus {
+        .stat-block:hover, .stat-block:active, .stat-block:focus {
             animation: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 30px var(--primary-color);
@@ -181,31 +178,13 @@
         }
 
         #home-section { min-height: 85vh; background: var(--gradient-bg); display: flex; align-items: center; }
-        
-        .hero-container { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            width: 100%; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            z-index: 2; 
-            position: relative; 
-        }
-
-        @media (max-width: 768px) {
-            .hero-container { flex-direction: column; text-align: center; }
-            .profile-photo { order: 1; margin-left: 0 !important; margin-bottom: 25px; }
-            .hero-text { order: 2; text-align: center; }
-            .typing-container { justify-content: center; }
-        }
-
+        .hero-container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; z-index: 2; position: relative; }
         .dot { position: absolute; width: 3px; height: 3px; background: white; border-radius: 50%; opacity: 0.6; box-shadow: 0 0 8px white; z-index: 1; animation: moveDots 10s linear infinite; }
         @keyframes moveDots { 0% { transform: translateY(100vh) translateX(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-10vh) translateX(50px); opacity: 0; } }
         .hero-text { flex: 1; text-align: left; }
-        .typing-container { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; color: var(--primary-color); display: flex; }
+        .typing-container { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; color: var(--primary-color); }
         .view-work-btn { display: inline-block; margin-top: 30px; padding: 12px 35px; background: linear-gradient(45deg, #00d2ff, #3a7bd5); color: white; text-decoration: none; border-radius: 50px; font-weight: bold; border: none; cursor: pointer; }
-        .profile-photo { width: clamp(250px, 30vw, 350px); height: clamp(250px, 30vw, 350px); border-radius: 50%; border: 5px solid var(--primary-color); object-fit: cover; margin-left: 20px; box-shadow: 0 0 30px rgba(0, 210, 255, 0.3); }
+        .profile-photo { width: clamp(250px, 30vw, 350px); height: clamp(250px, 30vw, 350px); border-radius: 50%; border: 5px solid var(--primary-color); object-fit: cover; margin-left: 20px; }
 
         .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 40px; }
         .stat-block i { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 10px; display: block; }
@@ -243,7 +222,7 @@
         .git-btn { background: #333; color: #fff; border: 1px solid #555; }
         .link-msg { font-size: 0.85rem; color: #ffca28; margin-top: 5px; display: block; font-style: italic; }
 
-        /* Education Card Styling */
+        /* Education Specific Styling */
         .edu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -251,11 +230,15 @@
             margin-top: 30px;
             justify-content: center;
         }
-        .edu-year { color: #ffffff; font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 8px; opacity: 0.8; }
-        .edu-degree { color: var(--primary-color); font-size: 1.25rem; margin: 0 0 10px 0; font-weight: bold; }
-        .edu-inst { font-style: italic; color: #ffffff; margin-bottom: 15px; font-size: 0.95rem; }
-        .edu-score { display: inline-block; background: rgba(0, 210, 255, 0.1); border: 1px solid var(--primary-color); padding: 4px 15px; border-radius: 20px; color: var(--primary-color); font-weight: bold; font-size: 0.9rem; margin-bottom: 15px; }
-
+        .edu-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            transition: 0.3s;
+        }
+        .edu-year { color: var(--primary-color); font-weight: bold; }
+        
         /* Unified Footer */
         .unified-footer {
             background: rgba(11, 30, 37, 0.98);
@@ -268,16 +251,15 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
             flex-wrap: wrap;
             gap: 30px;
         }
-        @media (max-width: 768px) {
-            .footer-container { flex-direction: column; align-items: center; text-align: center; }
-            .social-links { justify-content: center; }
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            transition: 0.3s;
         }
-        .social-links { display: flex; gap: 15px; margin-top: 10px; }
-        .social-links a { color: white; font-size: 1.5rem; transition: 0.3s; }
         .social-links a:hover { color: var(--primary-color); }
         .copyright-area {
             text-align: center;
@@ -333,28 +315,28 @@
         </section>
 
         <section id="education" class="glowing-section">
-            <h2 style="color:var(--primary-color); margin-bottom: 30px; font-size: 1.8rem;">Education</h2>
+            <h2 style="color:var(--primary-color);">Education</h2>
             <div class="edu-grid">
                 <div class="edu-card" tabindex="0">
                     <span class="edu-year">2023 — Present</span>
                     <h3 class="edu-degree">Bachelor of Technology (B.Tech)</h3>
                     <p class="edu-inst">Aditya Engineering College</p>
                     <span class="edu-score">CGPA: 9.02/10.0</span>
-                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); line-height: 1.6;">Focusing on Information Technology. Developing advanced skills in Software Development Life Cycle (SDLC) and Data Engineering.</p>
+                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:10px;">Focusing on Information Technology. Developing advanced skills in Software Development Life Cycle (SDLC) and Data Engineering.</p>
                 </div>
                 <div class="edu-card" tabindex="0">
                     <span class="edu-year">2021 — 2023</span>
                     <h3 class="edu-degree">Intermediate (MPC)</h3>
                     <p class="edu-inst">Naryana Junior College</p>
                     <span class="edu-score">Percentage: 94.3%</span>
-                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); line-height: 1.6;">Excelled in Mathematics and Physics, providing a logical base for my career in programming and analytics.</p>
+                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:10px;">Excelled in Mathematics and Physics, providing a logical base for my career in programming and analytics.</p>
                 </div>
                 <div class="edu-card" tabindex="0">
                     <span class="edu-year">2020 — 2021</span>
                     <h3 class="edu-degree">Secondary School Certificate (10th)</h3>
                     <p class="edu-inst">Narayana E.M high School</p>
                     <span class="edu-score">Percentage: 100%</span>
-                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); line-height: 1.6;">Achieved perfect Percentage, demonstrating consistent academic dedication.</p>
+                    <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); margin-top:10px;">Achieved perfect Percentage, demonstrating consistent academic dedication.</p>
                 </div>
             </div>
         </section>
@@ -395,6 +377,14 @@
             <h2 style="font-size: 3rem; color: var(--primary-color); margin: 0;">Certifications</h2>
             <p style="color: #ccc;">Official recognition of my technical expertise</p>
         </div>
+
+        <div class="stats-container" id="certs-stats-container">
+            <div class="stat-block" tabindex="0"><i class="fas fa-award"></i><h3 id="cert-stat-total">0</h3><p>Certificates</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-university"></i><h3 id="cert-stat-orgs">0</h3><p>Organizations</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-check-circle"></i><h3 id="cert-stat-verified">0</h3><p>Verified</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-calendar-alt"></i><h3 id="cert-stat-year">2025</h3><p>Current Year</p></div>
+        </div>
+
         <div id="certs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto;">
             </div>
     </div>
@@ -574,6 +564,7 @@
         renderProjects();
     }
 
+    // UPDATED FUNCTION TO LOAD CERTIFICATES WITH STATS
     async function loadCertificates() {
         const grid = document.getElementById('certs-grid');
         grid.innerHTML = '<p style="color:#888;">Loading certifications...</p>';
@@ -585,11 +576,20 @@
             
             if (snap.empty) {
                 grid.innerHTML = '<p style="color:#888;">No certificates added yet.</p>';
+                document.getElementById('cert-stat-total').textContent = "0";
+                document.getElementById('cert-stat-orgs').textContent = "0";
+                document.getElementById('cert-stat-verified').textContent = "0";
                 return;
             }
 
+            const uniqueOrgs = new Set();
+            let totalCerts = 0;
+
             snap.forEach(docSnap => {
                 const c = docSnap.data();
+                totalCerts++;
+                if(c.org) uniqueOrgs.add(c.org);
+
                 const card = document.createElement('div');
                 card.className = 'project-card';
                 card.innerHTML = `
@@ -608,6 +608,12 @@
                 };
                 grid.appendChild(card);
             });
+
+            // Update stats
+            document.getElementById('cert-stat-total').textContent = totalCerts;
+            document.getElementById('cert-stat-orgs').textContent = uniqueOrgs.size;
+            document.getElementById('cert-stat-verified').textContent = totalCerts;
+
         } catch (err) {
             grid.innerHTML = '<p style="color:red;">Error loading certificates.</p>';
         }
