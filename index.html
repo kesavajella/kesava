@@ -14,7 +14,6 @@
             --gradient-bg: radial-gradient(circle at center, #134e5e 0%, #0b1e25 100%);
             --text-light: #ffffff;
         }
-
         * { box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Arial, sans-serif; 
@@ -26,6 +25,52 @@
             display: flex; 
             flex-direction: column; 
             min-height: 100vh; 
+        }
+        
+        /* Unified Social and Platform Icon Styling */
+        .social-links { 
+            display: flex; 
+            gap: 15px; 
+            margin-top: 10px; 
+            align-items: center; 
+        }
+
+        .social-links a { 
+            color: white; 
+            font-size: 1.5rem; 
+            transition: 0.3s; 
+            text-decoration: none; 
+            display: flex;
+            align-items: center;
+        }
+
+        .social-links a:hover { 
+            color: var(--primary-color); 
+            transform: translateY(-3px);
+        }
+
+        /* Platform Circular Box (Matches FA icon size) */
+        .platform-container {
+            width: 32px;
+            height: 32px;
+            background-color: white; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; 
+            padding: 6px;
+            transition: 0.3s;
+        }
+
+        .platform-container:hover {
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        .platform-logo {
+            width: 100%;
+            height: 100%;
+            filter: brightness(0); /* Black icon on white bg */
+            object-fit: contain;
         }
 
         /* --- NAVIGATION --- */
@@ -235,7 +280,7 @@
         .project-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
         .project-card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
         .tech-tag { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; }
-
+        
         /* --- MODAL --- */
         .modal {
             display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; 
@@ -298,9 +343,6 @@
                 justify-content: center;
             }
         }
-        .social-links { display: flex; gap: 15px; margin-top: 10px; }
-        .social-links a { color: white; font-size: 1.5rem; transition: 0.3s; }
-        .social-links a:hover { color: var(--primary-color); }
         .copyright-area {
             text-align: center;
             margin-top: 30px;
@@ -474,13 +516,28 @@
 <footer class="unified-footer">
     <div class="footer-container">
         <div class="footer-left">
-            <h3 style="color:var(--primary-color); margin-bottom:10px;">Connect With Me</h3>
+            <h3 style="color:var(--primary-color); margin-bottom:15px;">Connect With Me</h3>
             <div class="social-links">
                 <a href="https://www.linkedin.com/in/kesava-jella" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://wwww.github.com/kesavajella" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="https://leetcode.com/u/Kesava78615/" target="_blank"><i class="fas fa-code"></i></a>
-                <a href="https://www.geeksforgeeks.org/user/kesava78615/" target="_blank"><i class="fas fa-terminal"></i></a>
-                <a href="https://www.codechef.com/users/kesava78615" target="_blank"><i class="fas fa-laptop-code"></i></a>
+                
+                <a href="https://leetcode.com/u/Kesava78615/" target="_blank">
+                    <div class="platform-container">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/leetcode.svg" class="platform-logo" alt="Leetcode">
+                    </div>
+                </a>
+
+                <a href="https://www.geeksforgeeks.org/user/kesava78615/" target="_blank">
+                    <div class="platform-container">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/geeksforgeeks.svg" class="platform-logo" alt="GFG">
+                    </div>
+                </a>
+
+                <a href="https://www.codechef.com/users/kesava78615" target="_blank">
+                    <div class="platform-container">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/codechef.svg" class="platform-logo" alt="CodeChef">
+                    </div>
+                </a>
             </div>
         </div>
         <div class="footer-right">
